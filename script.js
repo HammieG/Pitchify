@@ -1,5 +1,5 @@
 // ===== CONFIGURATION =====
-const OPENAI_API_KEY = "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"; // 🔑 REPLACE WITH YOUR KEY
+const OPENAI_API_KEY = ""; // 🔑 REPLACE WITH YOUR KEY
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
 // ===== DOM ELEMENTS =====
