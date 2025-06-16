@@ -3,137 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pitchify | AI Pitch Coach</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <title>Pitchify</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    #signInModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+    }
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <!-- App Container -->
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="logo">
-        <div class="logo-icon">P</div>
-        <span>Pitchify</span>
-      </div>
-      <nav class="main-nav">
-        <button class="nav-btn active" data-section="analyzer">Analyzer</button>
-        <button class="nav-btn" data-section="video">Video Review</button>
-        <button class="nav-btn" data-section="templates">Templates</button>
-      </nav>
-      <button class="auth-btn" id="authBtn">Sign In</button>
-    </header>
+  <h1>Pitchify</h1>
+  <button id="signInBtn">Sign In</button>
+  <div id="authStatus"></div>
 
-    <!-- Main Content -->
-    <main>
-      <!-- Hero Section -->
-      <section class="hero">
-        <h1>Refine Your <span class="gradient-text">Pitch</span></h1>
-        <p class="subtitle">AI-powered feedback on content, delivery, and investor readiness</p>
-      </section>
-
-      <!-- Analyzer Section -->
-      <section class="analyzer-section active-section" id="analyzer">
-        <div class="input-card">
-          <div class="input-group">
-            <label>Project Name</label>
-            <input type="text" id="projectName" placeholder="NeuroLink AI">
-          </div>
-          
-          <div class="tab-container">
-            <div class="tabs">
-              <button class="tab-btn active" data-tab="problem">Problem</button>
-              <button class="tab-btn" data-tab="solution">Solution</button>
-              <button class="tab-btn" data-tab="market">Market</button>
-            </div>
-            
-            <div class="tab-content active" id="problem-tab">
-              <textarea placeholder="What pain point does your audience experience?"></textarea>
-            </div>
-            
-            <div class="tab-content" id="solution-tab">
-              <textarea placeholder="How does your product solve this?"></textarea>
-            </div>
-            
-            <div class="tab-content" id="market-tab">
-              <textarea placeholder="Target market size and competition"></textarea>
-            </div>
-          </div>
-          
-          <button class="analyze-btn" id="analyzeBtn">
-            <span>Analyze with AI</span>
-            <div class="spinner hidden"></div>
-          </button>
-        </div>
-        
-        <div class="results-card hidden" id="textResults">
-          <h3>AI Feedback</h3>
-          <div class="ai-response" id="aiResponse"></div>
-        </div>
-      </section>
-
-      <!-- Video Review Section -->
-      <section class="video-section" id="video">
-        <div class="upload-card">
-          <div class="upload-area" id="uploadArea">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15" stroke="#9CA3AF" stroke-width="2"/>
-              <path d="M17 8L12 3L7 8" stroke="#9CA3AF" stroke-width="2"/>
-              <path d="M12 3V15" stroke="#9CA3AF" stroke-width="2"/>
-            </svg>
-            <p>Drag & drop pitch video</p>
-            <input type="file" id="videoInput" accept="video/*">
-            <button class="browse-btn">Browse Files</button>
-          </div>
-          
-          <div class="video-player hidden" id="videoPlayer">
-            <video controls id="pitchVideo"></video>
-            <div class="video-feedback" id="videoFeedback"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Templates Section -->
-      <section class="templates-section" id="templates">
-        <div class="templates-grid">
-          <div class="template-card">
-            <h4>Elevator Pitch</h4>
-            <p>30-second quick pitch</p>
-            <button class="use-btn">Use Template</button>
-          </div>
-          <div class="template-card">
-            <h4>Investor Deck</h4>
-            <p>10-slide structure</p>
-            <button class="use-btn">Use Template</button>
-          </div>
-          <div class="template-card">
-            <h4>Demo Day</h4>
-            <p>5-minute presentation</p>
-            <button class="use-btn">Use Template</button>
-          </div>
-        </div>
-      </section>
-    </main>
+  <!-- Sign In Modal -->
+  <div id="signInModal">
+    <div class="modal-content">
+      <h2>Sign In</h2>
+      <form id="signInForm">
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button type="submit">Sign In</button>
+      </form>
+      <p id="authMessage" style="color: red;"></p>
+    </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+
   <script>
-    // Your Firebase Config (replace with your actual config)
+    // ===== REPLACE THESE VALUES WITH YOUR FIREBASE CONFIG =====
     const firebaseConfig = {
-  apiKey: "AIzaSyCvOeu-2dqzaxRtSL9paU4-iMd50adCck0",
-  authDomain: "pitchary-c85df.firebaseapp.com",
-  projectId: "pitchary-c85df",
-  storageBucket: "pitchary-c85df.firebasestorage.app",
-  messagingSenderId: "893984142411",
-  appId: "1:893984142411:web:48f35e36799bc6a95989ce",
-  measurementId: "G-VBT14G7N5E"
-};
+       apiKey: "AIzaSyD7dxpBwHxad476IbuZBz5OiXPngk_HzK8",
+    authDomain: "pitchify-ab1d4.firebaseapp.com",
+    projectId: "pitchify-ab1d4"
+      // Only these 3 fields are needed for client-side auth
+    };
+    // =========================================================
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-  </script>
 
-  <script src="script.js"></script>
+    // DOM Elements
+    const signInBtn = document.getElementById('signInBtn');
+    const signInModal = document.getElementById('signInModal');
+    const signInForm = document.getElementById('signInForm');
+    const authMessage = document.getElementById('authMessage');
+    const authStatus = document.getElementById('authStatus');
+
+    // Auth State Listener
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        authStatus.innerHTML = `Welcome, ${user.email}! <button id="signOutBtn">Sign Out</button>`;
+        document.getElementById('signOutBtn').addEventListener('click', signOut);
+        signInModal.style.display = 'none';
+      } else {
+        authStatus.innerHTML = '';
+      }
+    });
+
+    // Sign In Handler
+    signInForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target[0].value;
+      const password = e.target[1].value;
+
+      try {
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+      } catch (error) {
+        authMessage.textContent = error.message;
+      }
+    });
+
+    // Sign Out Handler
+    function signOut() {
+      firebase.auth().signOut();
+    }
+
+    // Modal Controls
+    signInBtn.addEventListener('click', () => {
+      signInModal.style.display = 'flex';
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === signInModal) {
+        signInModal.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
