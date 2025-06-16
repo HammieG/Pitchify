@@ -2,21 +2,9 @@
 
 import { InferenceClient } from "https://esm.sh/@huggingface/inference"
 
-import { createRepo, commit, deleteRepo, listFiles } from "https://esm.sh/@huggingface/hub"
-// or npm:
-//import { InferenceClient } from "npm:@huggingface/inference"
-
-//import { createRepo, commit, deleteRepo, listFiles } from "npm:@huggingface/hub"
-
-//import { InferenceClient } from "@huggingface/inference";
-
-
-//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 ap key for hugging face
-
-//Pitchify_Access_Token_6/16/25_Rishi_Shah   name for key
 
 const HF_TOKEN = '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';
-console.log(HF_TOKEN)
+
 
 const client = new InferenceClient(HF_TOKEN);
 
@@ -26,7 +14,7 @@ const speech = "Four score and seven years ago our fathers brought forth, upon t
 const prompt = "You are a world-class public speaking coach. You help students and professionals improve their speeches by giving clear, constructive, and structured feedback. Evaluate the following speech as if it were presented aloud. Focus on the following areas: 1. **Clarity and Structure** – Is the speech well-organized and easy to follow? Are the transitions effective? 2. **Language and Word Choice** – Are the words appropriate, persuasive, and vivid? Any awkward phrasing or better alternatives? 3. **Tone and Engagement** – Is the tone appropriate for the context and audience? Is it engaging and expressive? 4. **Persuasiveness and Impact** – How convincing is the speech? Does it have a strong opening and a memorable closing? 5. **Suggestions for Improvement** – Provide 2–3 specific, actionable ways the speaker can improve. Be honest but encouraging. If possible, rewrite a small section of the speech to demonstrate how to improve it. Here is the Speech: "
 
 const out = await client.chatCompletion({
-  model: "meta-llama/Meta-Llama-3-70B-Instruct",
+  model: "mistralai/Mistral-7B-Instruct-v0.2",
   messages: [{ role: "user", content: prompt + speech}],
   max_tokens: 512
 });
