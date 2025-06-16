@@ -15,7 +15,8 @@ import { createRepo, commit, deleteRepo, listFiles } from "https://esm.sh/@huggi
 
 //Pitchify_Access_Token_6/16/25_Rishi_Shah   name for key
 
-const HF_TOKEN = "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";
+const HF_TOKEN = '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';
+console.log(HF_TOKEN)
 
 const client = new InferenceClient(HF_TOKEN);
 
