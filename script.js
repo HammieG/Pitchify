@@ -140,46 +140,17 @@ function initAnalysis() {
     // Show loading spinner
     analyzeBtn.innerHTML = '<div class="spinner"></div><span>Analyzing...</span>';
     analyzeBtn.disabled = true;
+    const text = problem + solution + market;
     
     try {
-      // Make OpenAI API request
-      const response = await fetch(OPENAI_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: [
-            {
-              role: "system",
-              content: "You are an expert startup pitch coach. Provide concise, actionable feedback with these sections:\n1. Problem Strength (0-10)\n2. Solution Effectiveness (0-10)\n3. Market Potential (0-10)\n4. Specific suggestions (bullets)\n5. Overall score (0-10)"
-            },
-            {
-              role: "user",
-              content: `Pitch Analysis Request:\n\n**Project:** ${projectName || "Untitled"}\n\n**Problem:** ${problem}\n\n**Solution:** ${solution}\n\n**Market:** ${market || "Not specified"}`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500
-        })
-      });
-
-      // Check if API call was successful
-      if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      
-      const data = await response.json();
-
-      // Format and display AI response
-      aiResponse.innerHTML = formatAIResponse(data.choices[0].message.content);
-      textResults.classList.remove('hidden');
-      textResults.scrollIntoView({ behavior: 'smooth' });
-      
-    } catch (error) {
-      console.error("OpenAI Error:", error);
-      alert(`Analysis failed: ${error.message}`);
-    } finally {
+  const output = await getAiOutput(text); // Add await here
+  aiResponse.innerHTML = formatAIResponse(output);
+  textResults.classList.remove('hidden');
+  textResults.scrollIntoView({ behavior: 'smooth' });
+} catch (error) {
+  console.error("AI Error:", error);
+  alert(`Analysis failed: ${error.message}`);
+}  finally {
       // Reset button
       analyzeBtn.innerHTML = '<span>Analyze with AI</span>';
       analyzeBtn.disabled = false;
