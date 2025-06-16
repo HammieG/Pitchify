@@ -1,6 +1,4 @@
-// ===== CONFIGURATION =====
-const OPENAI_API_KEY = ""; // 🔑 REPLACE WITH YOUR KEY
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+
 
 // ===== DOM ELEMENTS =====
 const navBtns = document.querySelectorAll('.nav-btn');
