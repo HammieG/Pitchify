@@ -169,9 +169,3 @@ function formatAIResponse(text) {
     .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
 }
 
-// ===== AUTHENTICATION =====
-function initAuth() {
-  authBtn.addEventListener('click', () => {
-    alert("Sign-in would launch here\n\nConfigure Firebase Auth as shown in previous steps");
-  });
-}
