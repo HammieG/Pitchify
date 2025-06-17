@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 globalThis.fetch = fetch;
 
 exports.handler = async (event) => {
