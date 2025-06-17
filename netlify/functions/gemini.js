@@ -1,3 +1,6 @@
+import fetch from "node-fetch";
+globalThis.fetch = fetch;
+
 exports.handler = async (event) => {
   const fetch = (...args) => import('node-fetch').then(mod => mod.default(...args));
 
