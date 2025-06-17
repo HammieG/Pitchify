@@ -14,13 +14,11 @@ const aiResponse = document.getElementById('aiResponse');
 const useTemplateBtns = document.querySelectorAll('.use-btn');
 const authBtn = document.getElementById('authBtn');
 
-import { InferenceClient } from "https://esm.sh/@huggingface/inference"
-const HF_TOKEN = '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';
-const client = new InferenceClient(HF_TOKEN);
-const prompt = "You are a world-class public speaking coach. You help students and professionals improve their speeches by giving clear, constructive, and structured feedback. Evaluate the following speech as if it were presented aloud. Focus on the following areas: 1. **Clarity and Structure** – Is the speech well-organized and easy to follow? Are the transitions effective? 2. **Language and Word Choice** – Are the words appropriate, persuasive, and vivid? Any awkward phrasing or better alternatives? 3. **Tone and Engagement** – Is the tone appropriate for the context and audience? Is it engaging and expressive? 4. **Persuasiveness and Impact** – How convincing is the speech? Does it have a strong opening and a memorable closing? 5. **Suggestions for Improvement** – Provide 2–3 specific, actionable ways the speaker can improve. Be honest but encouraging. If possible, rewrite a small section of the speech to demonstrate how to improve it. Here is the Speech: "
+
+const pitch_prompt = "You are an elite startup pitch coach, whose job is to help this startup with its pitch. They will give you the problem their startup solves, the solution, aka how the startup solves this problem, and then the market that the the startup wishes to target. Provide specific feedback on how the pitch can be better targeting all 3 sections. If possible give examples of how to change, and draw upon past successful startup pitches as examples to show the user."
 
 
-// ===== APP INITIALIZATION =====
+
 // Initialize the entire app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
@@ -143,7 +141,7 @@ function initAnalysis() {
     const text = problem + solution + market;
     
     try {
-  const output = await getAiOutput(text); // Add await here
+  const output = await callGemini(text); // Add await here
   aiResponse.innerHTML = formatAIResponse(output);
   textResults.classList.remove('hidden');
   textResults.scrollIntoView({ behavior: 'smooth' });
@@ -167,12 +165,36 @@ function formatAIResponse(text) {
     .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
 }
 
-async function getAiOutput(message) {
-  const out = await client.chatCompletion({
-  model: "meta-llama/Meta-Llama-3-70B-Instruct",
-  messages: [{ role: "user", content: prompt + message}],
-  max_tokens: 512
-});
-return out.choices[0].message.content;
+
+
+async function callGemini(prompt) {
+  try {
+    const res = await fetch('/.netlify/functions/gemini', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (text) {
+        console.log("💡 Gemini says:\n" + text);
+        return text;
+      } else {
+        console.warn("⚠️ Gemini returned no content.");
+        console.log("Full response:", data);
+        return null;
+      }
+    } else {
+      console.error("❌ Gemini API Error:", data.error);
+      return null;
+    }
+  } catch (err) {
+    console.error("❌ Fetch error:", err.message);
+    return null;
+  }
 }
 
