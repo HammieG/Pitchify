@@ -4,7 +4,8 @@
     const data = await res.json(); // works because now it's always JSON
 
     if (res.ok) {
-      console.log("✅ Gemini Response:\n", JSON.stringify(data, null, 2));
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log(text);
     } else {
       console.error("❌ Gemini Error:\n", data.error);
     }
