@@ -1,3 +1,13 @@
+// ===== IMPORT GEMINI SDK =====
+import {
+  GoogleGenAI,
+  createUserContent,
+  createPartFromUri
+} from "https://esm.run/@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: "AIzaSyCrN3GbiqRQbQmj1OCtZnAqQRSds3wwn5I" }); // 🔐 Replace with your Gemini API Key
+
+
 // ===== DOM ELEMENTS =====
 // Grab references to UI elements for navigation, tabs, video upload, and AI interaction
 const navBtns = document.querySelectorAll('.nav-btn');
@@ -13,10 +23,11 @@ const textResults = document.getElementById('textResults');
 const aiResponse = document.getElementById('aiResponse');
 const useTemplateBtns = document.querySelectorAll('.use-btn');
 const authBtn = document.getElementById('authBtn');
+const videoFeedback = document.getElementById('videoFeedback');
 
 
 const pitch_prompt = "You are an elite startup pitch coach, whose job is to help this startup with its pitch. They will give you the problem their startup solves, the solution, aka how the startup solves this problem, and then the market that the the startup wishes to target. Provide specific feedback on how the pitch can be better targeting all 3 sections. If possible give examples of how to change, and draw upon past successful startup pitches as examples to show the user."
-
+const video_prompt = "You are given a video, of a startup pitch or other speech or public speaking moment. Give feedback on how they can improve, with both the content, as well as the delivery. Give specific timestamps where the delivery can be improved. Also, please give positive feedback as well."
 
 
 // Initialize the entire app when DOM is ready
@@ -30,15 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== NAVIGATION SYSTEM =====
-// Handles switching between different main sections when nav buttons are clicked
 function initNavigation() {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Deactivate all nav buttons and sections
       navBtns.forEach(b => b.classList.remove('active'));
       sections.forEach(s => s.classList.remove('active-section'));
-      
-      // Activate the clicked nav button and corresponding section
       btn.classList.add('active');
       document.getElementById(btn.dataset.section).classList.add('active-section');
     });
@@ -46,15 +53,11 @@ function initNavigation() {
 }
 
 // ===== TAB SYSTEM =====
-// Handles switching between different text tabs (e.g., problem, solution, market)
 function initTabs() {
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Reset all tabs
       tabBtns.forEach(b => b.classList.remove('active'));
       tabContents.forEach(c => c.classList.remove('active'));
-      
-      // Activate the selected tab and its content
       btn.classList.add('active');
       document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
     });
@@ -62,7 +65,6 @@ function initTabs() {
 }
 
 // ===== TEMPLATE SYSTEM =====
-// Provides pre-filled pitch templates users can insert into textareas
 function initTemplates() {
   const TEMPLATES = {
     elevator: `**Problem:** \n- [Clearly state the pain point]\n\n**Solution:**\n- [Your product/service]\n- [Key differentiator]`,
@@ -72,11 +74,8 @@ function initTemplates() {
 
   useTemplateBtns.forEach((btn, index) => {
     btn.addEventListener('click', () => {
-      // Determine which template to insert
       const templateKey = Object.keys(TEMPLATES)[index];
       const activeTab = document.querySelector('.tab-content.active textarea');
-
-      // Insert template text if a textarea is active
       if (activeTab) {
         activeTab.value = TEMPLATES[templateKey];
         alert(`"${btn.parentElement.querySelector('h4').textContent}" template inserted!`);
@@ -86,78 +85,133 @@ function initTemplates() {
 }
 
 // ===== VIDEO UPLOAD =====
-// Handles the video upload and previews the video
-function initVideoUpload() {
-  // Trigger hidden input when upload area is clicked
+async function initVideoUpload() {
   uploadArea.addEventListener('click', () => videoInput.click());
-  
-  // Handle selected video file
-  videoInput.addEventListener('change', (e) => {
+  videoInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
 
-    // Make sure it's a video
-    if (file && file.type.includes('video')) {
-      // Load the video into player
-      pitchVideo.src = URL.createObjectURL(file);
-      uploadArea.classList.add('hidden');
-      videoPlayer.classList.remove('hidden');
+    // Enhanced file validation
+    if (!file.type.includes('video') || !file.name.endsWith('.mp4')) {
+      videoFeedback.innerHTML = "Please upload a standard MP4 video file";
+      return;
+    }
+
+    pitchVideo.src = URL.createObjectURL(file);
+    uploadArea.classList.add('hidden');
+    videoPlayer.classList.remove('hidden');
+    videoFeedback.innerHTML = "Analyzing video...";
+
+    try {
+      console.log("1. Uploading video file:", file.name);
       
-      // Simulate AI feedback after short delay
-      setTimeout(() => {
-        document.getElementById('videoFeedback').innerHTML = `
-          <div class="feedback-point">
-            <span class="timecode">0:15</span>
-            <p>Strong opening hook!</p>
-          </div>
-          <div class="feedback-point">
-            <span class="timecode">0:42</span>
-            <p>Consider slowing down during technical explanations</p>
-          </div>
-        `;
-      }, 2000);
+      // Upload with progress tracking
+      const uploadResponse = await ai.files.upload({
+        file: file,
+        mimeType: 'video/mp4'
+      });
+      
+      if (!uploadResponse?.uri) {
+        throw new Error("Upload failed - no URI returned");
+      }
+
+      console.log("2. File uploaded. URI:", uploadResponse.uri);
+      videoFeedback.innerHTML = "Processing video content...";
+
+      // Extended processing delay (10 seconds)
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // Enhanced analysis with response validation
+      let analysisResult;
+      try {
+        console.log("3. Starting video analysis");
+        
+        analysisResult = await ai.models.generateContent({
+          model: "gemini-2.0-flash-lite-001",
+          contents: [{
+            role: "user",
+            parts: [
+              { fileData: { 
+                mimeType: 'video/mp4',
+                fileUri: uploadResponse.uri 
+              }},
+              { text: video_prompt }
+            ]
+          }]
+        });
+
+        console.log("4. Raw API response:", analysisResult);
+        console.log(analysisResult.text)
+        
+        //videoFeedback.innerHTML=analysisResult.text
+        videoFeedback.innerHTML = formatAIResponse(analysisResult.text);
+
+        // Comprehensive response validation
+        if (!analysisResult || 
+            !analysisResult.response || 
+            !analysisResult.response.candidates || 
+            analysisResult.response.candidates.length === 0) {
+          throw new Error("API returned empty response");
+        }
+
+        const firstCandidate = analysisResult.response.candidates[0];
+        if (!firstCandidate.content || !firstCandidate.content.parts) {
+          throw new Error("Malformed API response structure");
+        }
+
+        const textParts = firstCandidate.content.parts
+          .filter(part => part.text)
+          .map(part => part.text);
+        
+        if (textParts.length === 0) {
+          throw new Error("No text content in response");
+        }
+
+        const analysisText = textParts.join('\n\n');
+        console.log("5. Analysis successful:", analysisText);
+        
+
+      } catch (analysisError) {
+        console.error("Analysis error:", analysisError);
+        throw new Error(`Video analysis failed: ${analysisError.message}`);
+      }
+      
+    } catch (err) {
+      console.error("Full error:", err);
+      
+      //uploadArea.classList.remove('hidden');
+      //videoPlayer.classList.add('hidden');
     }
   });
 }
-
 // ===== PITCH ANALYSIS =====
-// Handles AI-based feedback generation when user clicks "Analyze"
 function initAnalysis() {
   analyzeBtn.addEventListener('click', async () => {
-    // Get user inputs
-    const projectName = document.getElementById('projectName').value;
     const problem = document.querySelector('#problem-tab textarea').value;
     const solution = document.querySelector('#solution-tab textarea').value;
     const market = document.querySelector('#market-tab textarea').value;
-    
-    // Validate input
     if (!problem || !solution) {
       alert('Please fill in both Problem and Solution sections');
       return;
     }
-    
-    // Show loading spinner
     analyzeBtn.innerHTML = '<div class="spinner"></div><span>Analyzing...</span>';
     analyzeBtn.disabled = true;
     const text = problem + solution + market;
-    
     try {
-  const output = await callGemini(text); // Add await here
-  aiResponse.innerHTML = formatAIResponse(output);
-  textResults.classList.remove('hidden');
-  textResults.scrollIntoView({ behavior: 'smooth' });
-} catch (error) {
-  console.error("AI Error:", error);
-  alert(`Analysis failed: ${error.message}`);
-}  finally {
-      // Reset button
+      const output = await callGemini(text);
+      aiResponse.innerHTML = formatAIResponse(output);
+      textResults.classList.remove('hidden');
+      textResults.scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert(`Analysis failed: ${error.message}`);
+    } finally {
       analyzeBtn.innerHTML = '<span>Analyze with AI</span>';
       analyzeBtn.disabled = false;
     }
   });
 }
 
-// ===== FORMAT AI RESPONSE =====
-// Converts markdown-style feedback to formatted HTML
 function formatAIResponse(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -165,36 +219,10 @@ function formatAIResponse(text) {
     .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
 }
 
-
-
 async function callGemini(prompt) {
-  try {
-    const res = await fetch('/.netlify/functions/gemini', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (text) {
-        console.log("💡 Gemini says:\n" + text);
-        return text;
-      } else {
-        console.warn("⚠️ Gemini returned no content.");
-        console.log("Full response:", data);
-        return null;
-      }
-    } else {
-      console.error("❌ Gemini API Error:", data.error);
-      return null;
-    }
-  } catch (err) {
-    console.error("❌ Fetch error:", err.message);
-    return null;
-  }
+  const result = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: [{ role: "user", parts: [{ text: pitch_prompt + "\n" + prompt }] }],
+  });
+  return await result.response.text();
 }
-

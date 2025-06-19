@@ -11,7 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^1.5.1",
     "@google/generative-ai": "^0.24.1",
+    "busboy": "^1.6.0",
+    "form-data": "^4.0.3",
     "node-fetch": "^2.7.0"
   }
 }
