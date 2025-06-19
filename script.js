@@ -27,7 +27,7 @@ const videoFeedback = document.getElementById('videoFeedback');
 
 
 const pitch_prompt = "You are an elite startup pitch coach, whose job is to help this startup with its pitch. They will give you the problem their startup solves, the solution, aka how the startup solves this problem, and then the market that the the startup wishes to target. Provide specific feedback on how the pitch can be better targeting all 3 sections. If possible give examples of how to change, and draw upon past successful startup pitches as examples to show the user."
-const video_prompt = "You are given a video, of a startup pitch or other speech or public speaking moment. Give feedback on how they can improve, with both the content, as well as the delivery. Give specific timestamps where the delivery can be improved. Also, please give positive feedback as well."
+const video_prompt = "You are given a video, of a startup pitch or other speech or public speaking moment. Give feedback on how they can improve, with both the content, as well as the delivery. Give examples of the when the content delivered is unclear or there is something wrong with it. Give specific timestamps where the delivery can be improved. Also, please give positive feedback as well."
 
 
 // Initialize the entire app when DOM is ready
