@@ -224,5 +224,5 @@ async function callGemini(prompt) {
     model: "gemini-2.0-flash",
     contents: [{ role: "user", parts: [{ text: pitch_prompt + "\n" + prompt }] }],
   });
-  return await result.response.text();
+  return await result.text;
 }
